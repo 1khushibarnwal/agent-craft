@@ -117,7 +117,7 @@ Available actions:
 Respond ONLY in JSON:
 
 Examples:
-{"action":"get_crypto_price","coin":"ethereum"}
+{"action":"get_crypto_price","coin":"ethereum","currency":"usd"}
 {"action":"get_weather","city":"kolkata"}
 {"action":"reply","message":"your answer"}
           `,
@@ -139,8 +139,10 @@ Examples:
     // 🛠️ Step 3: Execute tool
     // AI decides which tool to call based on user query
     if (decision.action === "get_crypto_price") {
-      const price = await getCryptoPrice(decision.coin);
-      return res.json({ reply: `${decision.coin} price is $${price}` });
+      const price = await getCryptoPrice(decision.coin, decision.currency);
+      return res.json({
+        reply: `${decision.coin} price is ${price} ${decision.currency}`,
+      });
     }
 
     if (decision.action === "get_weather") {

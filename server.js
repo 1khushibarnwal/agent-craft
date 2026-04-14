@@ -21,6 +21,12 @@ async function getCryptoPrice(coin, currency = "usd") {
   }
 }
 
+async function getWeather(city) {
+  const res = await fetch(`https://wttr.in/${city}?format=j1`);
+  const data = await res.json();
+  return data.current_condition[0].temp_C;
+}
+
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
@@ -103,16 +109,16 @@ app.post("/chat", async (req, res) => {
           content: `
 You are an AI agent.
 
-If the user asks about crypto prices:
-- Extract BOTH coin and currency (usd, inr, eur, etc)
+Available actions:
+1. get_crypto_price → for crypto queries
+2. get_weather → for weather queries
+3. reply → for normal conversation
 
 Respond ONLY in JSON:
 
-{"action":"get_crypto_price","coin":"ethereum","currency":"inr"}
-
-If no currency mentioned, default to usd.
-
-Otherwise:
+Examples:
+{"action":"get_crypto_price","coin":"ethereum"}
+{"action":"get_weather","city":"kolkata"}
 {"action":"reply","message":"your answer"}
           `,
         },
@@ -131,14 +137,16 @@ Otherwise:
     }
 
     // 🛠️ Step 3: Execute tool
+    // AI decides which tool to call based on user query
     if (decision.action === "get_crypto_price") {
-      const price = await getCryptoPrice(
-        decision.coin,
-        decision.currency || "usd",
-      );
+      const price = await getCryptoPrice(decision.coin);
+      return res.json({ reply: `${decision.coin} price is $${price}` });
+    }
 
+    if (decision.action === "get_weather") {
+      const temp = await getWeather(decision.city);
       return res.json({
-        reply: `${decision.coin} price is ${price} ${decision.currency || "usd"}`,
+        reply: `Temperature in ${decision.city} is ${temp}°C`,
       });
     }
 

@@ -9,6 +9,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// const memory = {};
+
 async function getCryptoPrice(coin, currency = "usd") {
   try {
     const res = await fetch(
@@ -51,51 +53,6 @@ const tools = [
   },
 ];
 
-// app.post("/chat", async (req, res) => {
-//   try {
-//     const { message } = req.body;
-
-//     const lowerMsg = message.toLowerCase();
-
-//     if (
-//       lowerMsg.includes("bitcoin") ||
-//       lowerMsg.includes("eth") ||
-//       lowerMsg.includes("ethereum")
-//     ) {
-//       const response = await fetch(
-//         "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=inr",
-//       );
-//       const data = await response.json();
-
-//       return res.json({
-//         reply: `1 ETH = ₹${data.ethereum.inr} (live price)`,
-//       });
-//     }
-
-//     // 🤖 Otherwise use AI
-//     const response = await groq.chat.completions.create({
-//       messages: [
-//         {
-//           role: "system",
-//           content: "You are a helpful assistant.",
-//         },
-//         {
-//           role: "user",
-//           content: message,
-//         },
-//       ],
-//       model: "llama-3.1-8b-instant",
-//     });
-
-//     res.json({
-//       reply: response.choices[0].message.content,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send("Error");
-//   }
-// });
-
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
@@ -122,7 +79,10 @@ Examples:
 {"action":"reply","message":"your answer"}
           `,
         },
-        { role: "user", content: message },
+        {
+          role: "user",
+          content: message,
+        },
       ],
     });
 

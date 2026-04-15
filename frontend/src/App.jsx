@@ -5,6 +5,12 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
 
+  const [theme, setTheme] = useState("dark");
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   const sendMessage = async () => {
     const res = await axios.post("http://localhost:3000/chat", {
       message,
@@ -16,8 +22,18 @@ export default function App() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>AI Agent</h2>
+    <div
+      style={{
+        padding: 20,
+        backgroundColor: theme === "dark" ? "#080c16" : "#f9fafb",
+        color: theme === "dark" ? "white" : "black",
+        minHeight: "100vh",
+      }}
+    >
+      <h2 style={{ color: theme === "dark" ? "white" : "black" }}>AI Agent</h2>
+      <button onClick={toggleTheme}>
+        Switch to {theme === "dark" ? "light" : "dark"} mode
+      </button>
 
       {chat.map((c, i) => (
         <div key={i}>

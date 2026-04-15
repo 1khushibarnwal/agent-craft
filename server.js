@@ -9,16 +9,39 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// const memory = {};
+const memory = {};
+
+async function webSearch(query) {
+  try {
+    const res = await fetch(
+      `https://api.duckduckgo.com/?q=${query}&format=json`,
+    );
+    const data = await res.json();
+    return data.Abstract || data.Heading || "No result found";
+  } catch {
+    return "Search failed";
+  }
+}
+
+const coinMap = {
+  btc: "bitcoin",
+  eth: "ethereum",
+};
 
 async function getCryptoPrice(coin, currency = "usd") {
   try {
+    coin = coin.toLowerCase();
+    currency = currency.toLowerCase();
+
+    const normalizedCoin = coinMap[coin] || coin;
+
     const res = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=${currency}`,
+      `https://api.coingecko.com/api/v3/simple/price?ids=${normalizedCoin}&vs_currencies=${currency}`,
     );
+
     const data = await res.json();
-    return data[coin]?.[currency];
-  } catch (err) {
+    return data[normalizedCoin]?.[currency];
+  } catch {
     return null;
   }
 }
@@ -33,31 +56,17 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-const tools = [
-  {
-    type: "function",
-    function: {
-      name: "get_crypto_price",
-      description: "Get the current price of a cryptocurrency",
-      parameters: {
-        type: "object",
-        properties: {
-          coin: {
-            type: "string",
-            description: "Name of the coin (bitcoin, ethereum, etc)",
-          },
-        },
-        required: ["coin"],
-      },
-    },
-  },
-];
-
 app.post("/chat", async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, userId = "default" } = req.body;
 
-    // 🧠 Step 1: Ask AI WHAT to do (structured output)
+    // 🧠 Init memory
+    if (!memory[userId]) memory[userId] = [];
+
+    // ➕ Add user message
+    memory[userId].push({ role: "user", content: message });
+
+    // 🧠 Ask AI what to do
     const aiResponse = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
       messages: [
@@ -67,55 +76,81 @@ app.post("/chat", async (req, res) => {
 You are an AI agent.
 
 Available actions:
-1. get_crypto_price → for crypto queries
-2. get_weather → for weather queries
-3. reply → for normal conversation
+1. get_crypto_price
+2. get_weather
+3. web_search
+4. reply
+
+IMPORTANT:
+- For get_weather, ALWAYS include "city"
+- For get_crypto_price, ALWAYS include "coin" and "currency"
+- NEVER omit required fields
 
 Respond ONLY in JSON:
 
 Examples:
-{"action":"get_crypto_price","coin":"ethereum","currency":"usd"}
-{"action":"get_weather","city":"kolkata"}
+{"action":"get_crypto_price","coin":"bitcoin","currency":"usd"}
+{"action":"get_weather","city":"Kolkata"}
+{"action":"web_search","query":"latest AI news"}
 {"action":"reply","message":"your answer"}
           `,
         },
-        {
-          role: "user",
-          content: message,
-        },
+        ...memory[userId],
       ],
     });
 
     const content = aiResponse.choices[0].message.content;
 
-    // 🧠 Step 2: Parse AI decision
     let decision;
     try {
       decision = JSON.parse(content);
     } catch {
-      return res.json({ reply: content }); // fallback
+      memory[userId].push({ role: "assistant", content });
+      return res.json({ reply: content });
     }
 
-    // 🛠️ Step 3: Execute tool
-    // AI decides which tool to call based on user query
+    let reply;
+
+    // 🪙 Crypto
     if (decision.action === "get_crypto_price") {
       const price = await getCryptoPrice(decision.coin, decision.currency);
-      return res.json({
-        reply: `${decision.coin} price is ${price} ${decision.currency}`,
-      });
+
+      reply = price
+        ? `${decision.coin} price is ${price} ${decision.currency}`
+        : `Couldn't fetch price for ${decision.coin}`;
     }
 
-    if (decision.action === "get_weather") {
+    // 🌦 Weather
+    else if (decision.action === "get_weather") {
+      decision.city = decision.city.trim();
+      if (!decision.city) {
+        return res.json({
+          reply: "Please specify a city for weather.",
+        });
+      }
+
       const temp = await getWeather(decision.city);
-      return res.json({
-        reply: `Temperature in ${decision.city} is ${temp}°C`,
-      });
+
+      reply = temp
+        ? `Temperature in ${decision.city} is ${temp}°C`
+        : `Couldn't fetch weather for ${decision.city}`;
+    }
+
+    // 🌐 Web Search
+    else if (decision.action === "web_search") {
+      const result = await webSearch(decision.query);
+      reply = result;
     }
 
     // 🤖 Normal reply
-    return res.json({
-      reply: decision.message,
-    });
+    else {
+      reply = decision.message;
+    }
+
+    // 🧠 Save AI response
+    memory[userId].push({ role: "assistant", content: reply });
+
+    return res.json({ reply });
   } catch (error) {
     console.error(error);
     res.status(500).send("Error");

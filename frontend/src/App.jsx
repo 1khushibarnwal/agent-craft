@@ -52,6 +52,7 @@ export default function App() {
       });
     }, 20);
   };
+
   const sendMessage = async () => {
     if (!message.trim() || isSending.current) return;
     isSending.current = true;
@@ -69,7 +70,7 @@ export default function App() {
       if (!chat) {
         chat = {
           id: currentChatId,
-          title: userMsg.slice(0, 30),
+          title: userMsg.slice(0, 50),
           messages: [],
         };
         updated.push(chat);
@@ -192,7 +193,7 @@ export default function App() {
 
         {/* 📝 Input */}
         <div style={{ marginTop: 20 }}>
-          <input
+          <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => {

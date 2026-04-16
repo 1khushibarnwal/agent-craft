@@ -19,13 +19,19 @@ export default function App() {
   };
 
   const sendMessage = async () => {
-    const res = await axios.post("http://localhost:3000/chat", {
-      message,
-      userId,
-    });
+    if (!message.trim()) return;
 
-    setChat([...chat, { user: message, bot: res.data.reply }]);
-    setMessage("");
+    try {
+      const res = await axios.post("http://localhost:3000/chat", {
+        message,
+        userId,
+      });
+
+      setChat((prev) => [...prev, { user: message, bot: res.data.reply }]);
+      setMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
 
   return (
@@ -39,10 +45,19 @@ export default function App() {
       }}
     >
       <h1 style={{ color: theme === "dark" ? "white" : "black" }}>AI Agent</h1>
-      <button onClick={toggleTheme}>
-        Switch to {theme === "dark" ? "light" : "dark"} mode
+      <button
+        onClick={toggleTheme}
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 20,
+          padding: "8px 12px",
+          borderRadius: "6px",
+          cursor: "pointer",
+        }}
+      >
+        {theme === "dark" ? "☀️" : "🌙"}
       </button>
-
       {chat.map((c, i) => (
         <div key={i}>
           <b>You:</b> {c.user} <br />
@@ -50,15 +65,39 @@ export default function App() {
           <hr />
         </div>
       ))}
-
-      <input value={message} onChange={(e) => setMessage(e.target.value)} />
-      <button onClick={sendMessage}>Send</button>
-
+      <input
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        style={{
+          width: "70%",
+          marginBottom: "10px",
+          padding: "8px",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
+          fontSize: "20px",
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") sendMessage();
+        }}
+      />
+      &nbsp;&nbsp;
+      <button
+        onClick={sendMessage}
+        style={{
+          marginBottom: "10px",
+          padding: "5px",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
+          cursor: "pointer",
+        }}
+      >
+        Send
+      </button>
       <button
         onClick={newChat}
         style={{
           position: "absolute",
-          top: 20,
+          top: 60,
           right: 20,
           padding: "8px 12px",
           borderRadius: "6px",

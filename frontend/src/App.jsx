@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import axios from "axios";
 
 export default function App() {
@@ -11,6 +11,8 @@ export default function App() {
 
   const [loading, setLoading] = useState(false);
 
+  const isSending = useRef(false);
+
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
@@ -20,32 +22,39 @@ export default function App() {
   };
 
   // ✨ Typing effect
-  const typeMessage = (text) => {
+  const typeMessage = (text, chatId) => {
     let index = 0;
     let current = "";
 
     const interval = setInterval(() => {
+      if (index >= text.length) {
+        clearInterval(interval);
+        return;
+      }
+
       current += text[index];
       index++;
 
       setChats((prev) => {
         const updated = [...prev];
-        const chat = updated.find((c) => c.id === currentChatId);
+        const chat = updated.find((c) => c.id === chatId);
 
-        if (!chat) return prev;
+        if (!chat || chat.messages.length === 0) return prev;
 
-        // update last bot message
-        chat.messages[chat.messages.length - 1].content = current;
+        // ALWAYS target last message
+        const lastIndex = chat.messages.length - 1;
 
-        return [...updated];
+        if (chat.messages[lastIndex].role === "bot") {
+          chat.messages[lastIndex].content = current;
+        }
+
+        return updated;
       });
-
-      if (index === text.length) clearInterval(interval);
     }, 20);
   };
-
   const sendMessage = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() || isSending.current) return;
+    isSending.current = true;
 
     setLoading(true);
 
@@ -66,10 +75,12 @@ export default function App() {
         updated.push(chat);
       }
 
-      chat.messages.push(
-        { role: "user", content: userMsg },
-        { role: "bot", content: "" }, // placeholder
-      );
+      chat.messages.push({ role: "user", content: userMsg });
+
+      // 👇 only add bot if last isn't already bot
+      if (chat.messages[chat.messages.length - 1]?.role !== "bot") {
+        chat.messages.push({ role: "bot", content: "" });
+      }
 
       return [...updated];
     });
@@ -83,12 +94,13 @@ export default function App() {
       const reply = res.data.reply;
 
       // ✨ animate response
-      typeMessage(reply);
+      typeMessage(reply, currentChatId);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
+      isSending.current = false;
     }
-
-    setLoading(false);
   };
 
   const currentChat = chats.find((c) => c.id === currentChatId);
@@ -184,7 +196,7 @@ export default function App() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
               }
@@ -200,6 +212,7 @@ export default function App() {
             placeholder="Write your thoughts...💭"
           />
           <button
+            type="button"
             onClick={sendMessage}
             style={{
               padding: "5px 10px",

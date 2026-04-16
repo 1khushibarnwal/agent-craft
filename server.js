@@ -73,26 +73,47 @@ app.post("/chat", async (req, res) => {
         {
           role: "system",
           content: `
-You are an AI agent.
+You are an AI assistant.
+
+You can either:
+- Call a tool using JSON
+- OR reply normally in plain text
+
+IMPORTANT RULES:
+- Use JSON ONLY when calling a tool
+- For normal conversation, reply in plain English
+- Never wrap normal replies in JSON
 
 Available actions:
 1. get_crypto_price
 2. get_weather
 3. web_search
-4. reply
-
-IMPORTANT:
-- For get_weather, ALWAYS include "city"
-- For get_crypto_price, ALWAYS include "coin" and "currency"
-- NEVER omit required fields
-
-Respond ONLY in JSON:
 
 Examples:
-{"action":"get_crypto_price","coin":"bitcoin","currency":"usd"}
+Tool:
 {"action":"get_weather","city":"Kolkata"}
-{"action":"web_search","query":"latest AI news"}
-{"action":"reply","message":"your answer"}
+
+Normal:
+The weather in Kolkata is currently warm and humid.
+
+When the user asks about crypto prices, ALWAYS extract:
+- coin (like btc, eth, bitcoin, ethereum)
+- currency (like usd, inr)
+
+Examples:
+
+User: btc to usd  
+→ {"action":"get_crypto_price","coin":"btc","currency":"usd"}
+
+User: eth price in inr  
+→ {"action":"get_crypto_price","coin":"eth","currency":"inr"}
+
+User: bitcoin price  
+→ {"action":"get_crypto_price","coin":"bitcoin","currency":"usd"}
+
+IMPORTANT:
+- Never leave coin or currency undefined
+- Default currency = usd if not provided.
           `,
         },
         ...memory[userId],
@@ -106,6 +127,11 @@ Examples:
       decision = JSON.parse(content);
     } catch {
       memory[userId].push({ role: "assistant", content });
+      return res.json({ reply: content });
+    }
+
+    // 🧠 Always sanitize output
+    if (!decision || typeof decision !== "object") {
       return res.json({ reply: content });
     }
 
@@ -144,7 +170,7 @@ Examples:
 
     // 🤖 Normal reply
     else {
-      reply = decision.message;
+      reply = decision.message || content;
     }
 
     // 🧠 Save AI response

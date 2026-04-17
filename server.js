@@ -102,13 +102,13 @@ When the user asks about crypto prices, ALWAYS extract:
 
 Examples:
 
-User: btc to usd  
+User: btc to usd
 → {"action":"get_crypto_price","coin":"btc","currency":"usd"}
 
-User: eth price in inr  
+User: eth price in inr
 → {"action":"get_crypto_price","coin":"eth","currency":"inr"}
 
-User: bitcoin price  
+User: bitcoin price
 → {"action":"get_crypto_price","coin":"bitcoin","currency":"usd"}
 
 IMPORTANT:

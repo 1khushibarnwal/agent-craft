@@ -123,7 +123,7 @@ export default function App() {
           padding: 10,
         }}
       >
-        <h3>Chats</h3>
+        <h3>Previous Data</h3>
 
         {chats.map((chat) => (
           <div

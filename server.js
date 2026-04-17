@@ -59,121 +59,87 @@ const groq = new Groq({
 app.post("/chat", async (req, res) => {
   try {
     const { message, userId = "default" } = req.body;
+    console.log("🔥 Incoming message:", message);
 
-    // 🧠 Init memory
     if (!memory[userId]) memory[userId] = [];
 
-    // ➕ Add user message
     memory[userId].push({ role: "user", content: message });
 
-    // 🧠 Ask AI what to do
+    const lowerMsg = message.toLowerCase();
+
+    // ===============================
+    // STEP 1: HARD ROUTING (NO AI)
+    // ===============================
+
+    // 🌦 Weather (FORCED)
+    if (lowerMsg.includes("temp") || lowerMsg.includes("weather")) {
+      const cityMatch = message.match(/in ([a-zA-Z\s]+)/i);
+      const city = cityMatch ? cityMatch[1].trim() : "Kolkata";
+
+      const temp = await getWeather(city);
+
+      const reply = temp
+        ? `Temperature in ${city} is ${temp}°C`
+        : `Couldn't fetch weather for ${city}`;
+
+      memory[userId].push({ role: "assistant", content: reply });
+      console.log("✅ WEATHER ROUTE TRIGGERED");
+      return res.json({ reply });
+    }
+
+    // 🪙 Crypto (FORCED)
+    if (
+      lowerMsg.includes("btc") ||
+      lowerMsg.includes("bitcoin") ||
+      lowerMsg.includes("eth") ||
+      lowerMsg.includes("ethereum")
+    ) {
+      let coin = "bitcoin";
+      if (lowerMsg.includes("eth")) coin = "ethereum";
+
+      let currency = "usd";
+      if (lowerMsg.includes("inr")) currency = "inr";
+
+      const price = await getCryptoPrice(coin, currency);
+
+      const reply = price
+        ? `${coin} price is ${price} ${currency}`
+        : `Couldn't fetch price for ${coin}`;
+
+      memory[userId].push({ role: "assistant", content: reply });
+      return res.json({ reply });
+    }
+
+    // 🌐 Web Search (FORCED)
+    if (
+      lowerMsg.includes("latest") ||
+      lowerMsg.includes("news") ||
+      lowerMsg.includes("who is") ||
+      lowerMsg.includes("what is")
+    ) {
+      const result = await webSearch(message);
+
+      memory[userId].push({ role: "assistant", content: result });
+      return res.json({ reply: result });
+    }
+
+    // ===============================
+    // STEP 2: AI (ONLY CHAT)
+    // ===============================
+
     const aiResponse = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
       messages: [
         {
           role: "system",
-          content: `
-You are an AI assistant.
-
-You can either:
-- Call a tool using JSON
-- OR reply normally in plain text
-
-IMPORTANT RULES:
-- Use JSON ONLY when calling a tool
-- For normal conversation, reply in plain English
-- Never wrap normal replies in JSON
-
-Available actions:
-1. get_crypto_price
-2. get_weather
-3. web_search
-
-Examples:
-Tool:
-{"action":"get_weather","city":"Kolkata"}
-
-Normal:
-The weather in Kolkata is currently warm and humid.
-
-When the user asks about crypto prices, ALWAYS extract:
-- coin (like btc, eth, bitcoin, ethereum)
-- currency (like usd, inr)
-
-Examples:
-
-User: btc to usd
-→ {"action":"get_crypto_price","coin":"btc","currency":"usd"}
-
-User: eth price in inr
-→ {"action":"get_crypto_price","coin":"eth","currency":"inr"}
-
-User: bitcoin price
-→ {"action":"get_crypto_price","coin":"bitcoin","currency":"usd"}
-
-IMPORTANT:
-- Never leave coin or currency undefined
-- Default currency = usd if not provided.
-          `,
+          content: "You are a helpful conversational assistant.",
         },
         ...memory[userId],
       ],
     });
 
-    const content = aiResponse.choices[0].message.content;
+    const reply = aiResponse.choices[0].message.content;
 
-    let decision;
-    try {
-      decision = JSON.parse(content);
-    } catch {
-      memory[userId].push({ role: "assistant", content });
-      return res.json({ reply: content });
-    }
-
-    // 🧠 Always sanitize output
-    if (!decision || typeof decision !== "object") {
-      return res.json({ reply: content });
-    }
-
-    let reply;
-
-    // 🪙 Crypto
-    if (decision.action === "get_crypto_price") {
-      const price = await getCryptoPrice(decision.coin, decision.currency);
-
-      reply = price
-        ? `${decision.coin} price is ${price} ${decision.currency}`
-        : `Couldn't fetch price for ${decision.coin}`;
-    }
-
-    // 🌦 Weather
-    else if (decision.action === "get_weather") {
-      decision.city = decision.city.trim();
-      if (!decision.city) {
-        return res.json({
-          reply: "Please specify a city for weather.",
-        });
-      }
-
-      const temp = await getWeather(decision.city);
-
-      reply = temp
-        ? `Temperature in ${decision.city} is ${temp}°C`
-        : `Couldn't fetch weather for ${decision.city}`;
-    }
-
-    // 🌐 Web Search
-    else if (decision.action === "web_search") {
-      const result = await webSearch(decision.query);
-      reply = result;
-    }
-
-    // 🤖 Normal reply
-    else {
-      reply = decision.message || content;
-    }
-
-    // 🧠 Save AI response
     memory[userId].push({ role: "assistant", content: reply });
 
     return res.json({ reply });

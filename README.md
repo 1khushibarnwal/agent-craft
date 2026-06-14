@@ -131,3 +131,14 @@ If none of the hard‑routed conditions are met, the server sends the conversati
 
 Why this approach? Hard routing reduces API costs, improves response speed for deterministic tasks, and gives you fine‑grained control over critical functionality – a common pattern in production agent systems.
 
+## 🤝 Acknowledgments
+- Groq – For providing fast, accessible LLM inference.
+
+- wttr.in – For the simple, free weather API.
+
+- CoinGecko – For reliable cryptocurrency data.
+
+- DuckDuckGo – For the instant answer API.
+
+## 📜 License
+This project is currently unlicensed.

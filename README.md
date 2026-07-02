@@ -1,4 +1,5 @@
-# 🤖 AI Agent Learning Project
+# 🤖AgentCraft
+## AI Agent Learning Project
 
 This repository is a **learning-oriented project** that demonstrates how to build an intelligent AI agent capable of handling diverse user requests. It showcases a practical implementation combining rule‑based routing for specific tasks (weather, cryptocurrency prices, web search) with a Large Language Model (LLM) for general conversation.
 

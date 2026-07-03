@@ -136,7 +136,7 @@ Why this approach? Hard routing reduces API costs, improves response speed for d
 
 Based on the commit history and project direction, potential improvements could include:
 
-### Backend Enhancements
+### Backend Enhancements:
 - [ ] Replace in-memory storage with MongoDB (mongoose is already installed)
 - [ ] Implement user authentication and session management
 - [ ] Add request logging and monitoring
@@ -146,7 +146,7 @@ Based on the commit history and project direction, potential improvements could 
 - [ ] Add WebSocket support for real-time updates
 - [ ] Create comprehensive API documentation with Swagger/OpenAPI
 
-### Agent Capabilities
+### Agent Capabilities:
 - [ ] Add more hard-routed actions:
   - [ ] Calculator functionality
   - [ ] Unit conversion
@@ -163,7 +163,7 @@ Based on the commit history and project direction, potential improvements could 
 - [ ] Add support for file uploads and processing
 - [ ] Implement memory persistence across sessions
 
-### Frontend Improvements
+### Frontend Improvements:
 - [ ] Improve UI/UX with message streaming
 - [ ] Add voice input/output capabilities
 - [ ] Implement chat export/sharing functionality
@@ -175,7 +175,7 @@ Based on the commit history and project direction, potential improvements could 
 - [ ] Create mobile-responsive design
 - [ ] Add PWA support for offline usage
 
-### Deployment & DevOps
+### Deployment & DevOps:
 - [ ] Containerize with Docker and Docker Compose
 - [ ] Deploy to cloud platforms:
   - [ ] AWS (EC2, ECS, or Lambda)
@@ -189,7 +189,7 @@ Based on the commit history and project direction, potential improvements could 
 - [ ] Configure SSL/TLS for secure connections
 - [ ] Set up environment-specific configurations
 
-### Security Enhancements
+### Security Enhancements:
 - [ ] Implement API key rotation
 - [ ] Add input sanitization and validation
 - [ ] Implement CORS policies properly
@@ -198,7 +198,7 @@ Based on the commit history and project direction, potential improvements could 
 - [ ] Add audit logging for sensitive operations
 - [ ] Encrypt sensitive data at rest
 
-### Testing & Quality
+### Testing & Quality:
 - [ ] Write unit tests for backend functions
 - [ ] Add integration tests for API endpoints
 - [ ] Implement end-to-end testing (Cypress/Playwright)
@@ -206,7 +206,7 @@ Based on the commit history and project direction, potential improvements could 
 - [ ] Set up code coverage reporting
 - [ ] Implement pre-commit hooks with linting
 
-### Documentation
+### Documentation:
 - [ ] Add API reference documentation
 - [ ] Create user guide and tutorials
 - [ ] Write contributor guidelines
@@ -215,7 +215,7 @@ Based on the commit history and project direction, potential improvements could 
 - [ ] Document environment variables clearly
 - [ ] Add code comments for complex logic
 
-### Community & Collaboration
+### Community & Collaboration:
 - [ ] Add issue templates for bug reports and feature requests
 - [ ] Create pull request template
 - [ ] Set up discussion forums or Discord server
@@ -223,7 +223,7 @@ Based on the commit history and project direction, potential improvements could 
 - [ ] Create contributing guide
 - [ ] Add badges for build status, coverage, etc.
 
-### Performance Optimizations
+### Performance Optimizations:
 - [ ] Implement response compression
 - [ ] Add database indexing
 - [ ] Optimize API calls with batch requests
@@ -232,14 +232,14 @@ Based on the commit history and project direction, potential improvements could 
 - [ ] Implement service workers for offline support
 - [ ] Optimize images and assets
 
-### Analytics & Insights
+### Analytics & Insights:
 - [ ] Add usage analytics
 - [ ] Implement error tracking (Sentry)
 - [ ] Add performance monitoring
 - [ ] Create user behavior dashboards
 - [ ] Implement A/B testing capabilities
 
-### Accessibility
+### Accessibility:
 - [ ] Add screen reader support
 - [ ] Implement keyboard navigation
 - [ ] Ensure proper color contrast
@@ -247,7 +247,7 @@ Based on the commit history and project direction, potential improvements could 
 - [ ] Support high contrast mode
 - [ ] Add focus management
 
-### Internationalization
+### Internationalization:
 - [ ] Add multi-language support
 - [ ] Implement i18n/l10n framework
 - [ ] Add RTL language support

@@ -264,6 +264,9 @@ Based on the commit history and project direction, potential improvements could 
 **Contributions Welcome!**  
 Feel free to pick any item from this list and submit a pull request. For major features, please open an issue first to discuss the implementation approach.
 
+## 👤 Author
+Khushi Barnwal [https://github.com/1khushibarnwal]
+
 ## 🤝 Acknowledgments
 - Groq – For providing fast, accessible LLM inference.
 
